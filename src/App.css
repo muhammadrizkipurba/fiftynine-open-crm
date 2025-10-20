@@ -1,38 +1,152 @@
-.App {
-  text-align: center;
+:root {
+  height: 100vh;
+  overflow-y: hidden;
 }
 
-.App-logo {
-  height: 40vmin;
+.bg-main-gradient {
+  @apply bg-gradient-to-br from-[#CAFE69] to-[#A4F018];
+}
+
+.bg-main-blue {
+  background-color: #1359A5 !important;
+}
+
+.bg-main-green {
+  background-color: #A4F018 !important;
+}
+
+.text-main-blue {
+  color: #1359A5;
+}
+
+.text-main-green {
+  color: #A4F018;
+}
+
+.btn-border-green {
+  border: 1px solid #A4F018;
+  background-color: transparent;
+}
+
+.btn-border-green:hover {
+  @apply bg-gradient-to-br from-[#CAFE69] to-[#A4F018] text-black;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  display: inline-block;
+  /* Adjust as needed */
+  width: 200px;
+  /* Example width */
+}
+
+.custom-select-wrapper::after {
+  content: '\25BC';
+  /* Unicode character for a down arrow */
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
   pointer-events: none;
+  /* Allow clicks to pass through to the select */
+  color: #333;
+  /* Arrow color */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* .select-wrapper::after {
+  content: "▼";
+  font-size: 1rem;
+  color: #555;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+} */
+
+table {
+  border-collapse: collapse;
+  overflow: hidden;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+/* Zebra striping */
+tr:nth-of-type(even) {
+  background: #eeeeeed2;
+}
+
+tr:nth-of-type(odd) {
+  background: #478cd529;
+}
+
+th {
+  background: #1359A5;
   color: white;
+  font-weight: 600;
+  font-size: 14px!important;
 }
 
-.App-link {
-  color: #61dafb;
+td,
+th {
+  padding: 10px;
+  text-align: left;
+  font-size: 18px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* 
+Max width before this PARTICULAR table gets nasty
+This query will take effect for any screen smaller than 760px
+and also iPads specifically.
+*/
+@media only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px) {
+
+  table {
+    width: 100%;
   }
-  to {
-    transform: rotate(360deg);
+
+  /* Force table to not be like tables anymore */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
   }
+
+  /* Hide table headers (but not display: none;, for accessibility) */
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    border: 1px solid #ccc;
+  }
+
+  td {
+    /* Behave  like a "row" */
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td:before {
+    /* Now like a table header */
+    position: absolute;
+    /* Top/left values mimic padding */
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    /* Label the data */
+    content: attr(data-column);
+
+    color: #000;
+    font-weight: bold;
+  }
+
 }
