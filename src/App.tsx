@@ -4,6 +4,9 @@ import MainLayout from './components/layout/MainLayout';
 import DashboardPage from './pages/dashboard';
 import SettingsPage from './pages/settings';
 import TeamsRegisteredPage from './pages/teams/teamsRegistered';
+import AuthRoute from './AuthRoute';
+import LoginPage from './pages/login/LoginPage';
+import ProtectedRoute from './ProtectedRoute';
 
 function App() {
   return (
@@ -11,9 +14,38 @@ function App() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/teams" element={<TeamsRegisteredPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route 
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <TeamsRegisteredPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <AuthRoute>
+                <LoginPage />
+              </AuthRoute>
+            }
+          />
         </Routes>
       </MainLayout>
     </div>

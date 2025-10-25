@@ -11,12 +11,16 @@ export interface SingleTeamData {
     email: string;
     whatsapp: string;
   };
+  player_1_hometown: string;
+  player_1_instagram: string;
   player_2_id: {
     _id: string;
     full_name: string;
     email: string;
     whatsapp: string;
   };
+  player_2_hometown: string;
+  player_2_instagram: string;
   level_category_id: {
     _id: string;
     label: string;

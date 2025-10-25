@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { IoCheckmarkCircle } from "react-icons/io5";
+import { IoCheckmarkCircle, IoInformationCircle } from "react-icons/io5";
 import { io } from 'socket.io-client';
-import { fetchRegisteredTeamList, fetchTeamListPayload } from './teamRegisteredServices';
+import { fetchApproveRegisteredTeam, fetchApproveRegisteredTeamPayload, fetchCategoryOptions, fetchCategoryOptionsPayload, fetchRegisteredTeamList, fetchTeamListPayload } from './teamRegisteredServices';
 import PageTitleCard from '../../components/common/PageTitleCard';
 import ReusableTable from '../../components/common/ReactTable';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 import { SingleTeamData } from './teamTypes';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import 'react-photo-view/dist/react-photo-view.css';
+import Alert, { AlertPropsType } from '../../components/ui/alert';
+import Loading from "../../components/ui/loading";
+import TeamApprovalForm from './teamApprovalForm';
+import { SelectOption } from '../../components/form/SelectInput';
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -30,17 +36,23 @@ const FilterTextInput = ({
 }) => {
   return (
     <div className='flex flex-col'>
-      <label>{label}</label>
+      <small>{label}</small>
       <input
         type="text"
         className='p-2 font-normal rounded-lg text-sm mt-2  text-black'
         value={(column.getFilterValue() ?? '') as string}
         onChange={e => {
           setTimeout(() => {
-            const newFilters = [...filters, {
-              id: filterAccessorId,
-              value: e.target.value
-            }];
+            const newFilters = filters.map((item: any) => {
+              if (item.id === filterAccessorId) {
+                return {
+                  id: filterAccessorId,
+                  value: e.target.value
+                };
+              };
+
+              return item;
+            });
             setFilters(newFilters);
           }, 1500);
           column.setFilterValue(e.target.value)
@@ -49,21 +61,33 @@ const FilterTextInput = ({
       />
     </div>
   )
-}
+};
 
 const TeamsRegisteredPage = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [alert, setAlert] = useState<AlertPropsType | null>(null);
+
+  const [selectedTeamData, setSelectedTeamData] = useState<SingleTeamData | null>(null);
+  const [approvedCategory, setApprovedCategory] = useState<string>("");
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<boolean>(false);
+  const [isOpenDetailsModal, setIsOpenDetailsModal] = useState<boolean>(false);
+
+  const [selectOptions, setSelectOptions] = useState<SelectOption[] | []>([]);
+  const [totalTeamsPerCategory, setTotalTeamsPerCategory] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [filters, setFilters] = useState([
     { id: "player_1_id.full_name", value: "" },
     { id: "player_2_id.full_name", value: "" },
     { id: "level_category_id", value: "all" },
+    { id: "payment_status", value: "all" },
   ]);
 
   const socket = useMemo(() => io(process.env.REACT_APP_API_URL), []);
 
   useEffect(() => {
     socket.on('fetchRegisteredTeamList', (data) => {
-      setTableData(data);
+      const rawData = data.reverse();
+      setTableData(rawData);
       // socket.disconnect();
     });
 
@@ -77,15 +101,17 @@ const TeamsRegisteredPage = () => {
 
   useEffect(() => {
     fetchData();
+    fetchSelectOptions();
 
     return () => { }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters])
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const payload: fetchTeamListPayload = {
+        tournament_id: "68ee4a08fa834ff5a0378718",
         filters,
         pagination: {
           limit: 20,
@@ -95,28 +121,96 @@ const TeamsRegisteredPage = () => {
       const response = await fetchRegisteredTeamList(payload);
       const { status, message } = response;
       if (status === 200) {
-        setTableData(message.data)
+        setTableData(message.data.reverse());
+        setTotalTeamsPerCategory(message.totalTeamsPerCategory);
+        setIsLoading(false);
       } else {
-        // setAlert({
-        //   variant: "error",
-        //   title: "Something went wrong",
-        //   message
-        // });
+        setIsLoading(false);
+        setAlert({
+          variant: "error",
+          title: "Something went wrong",
+          message
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setIsLoading(false);
+      setAlert({
+        variant: "error",
+        title: "Something went wrong",
+        message: ""
+      });
+    }
+  };
+
+  const fetchSelectOptions = async () => {
+    try {
+      const payload: fetchCategoryOptionsPayload = {
+        tournament_id: "68ee4a08fa834ff5a0378718"
+      };
+
+      const response = await fetchCategoryOptions(payload);
+      const { status, data } = response;
+      if (status === 200) {
+        setSelectOptions(data);
+      } else {
+        setSelectOptions([]);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
+  const onConfirmHandler = async () => {
+    try {
+      setIsLoading(true);
+      const payload: fetchApproveRegisteredTeamPayload = {
+        team_id: selectedTeamData?._id,
+        approved_category_id: approvedCategory
+      };
+
+      const response = await fetchApproveRegisteredTeam(payload);
+      const { status } = response;
+      if (status === 200) {
+        fetchData();
+        setIsOpenConfirmationModal(false);
+        setSelectedTeamData(null);
+        setApprovedCategory("");
+      } else {
+        setIsOpenConfirmationModal(true);
+      }
+    } catch (error) {
+      console.log(error)
+      setIsLoading(false);
+      setAlert({
+        variant: "error",
+        title: "Something went wrong",
+        message: ""
+      });
+    };
+  };
+
   const teamColumns: ColumnDef<SingleTeamData>[] = [
+    {
+      accessorKey: 'No.',
+      enableResizing: false,
+      size: 10,
+      cell: ({ row }) => {
+        return (
+          <div className='text-center'>
+            {Number(row.id) + 1}
+          </div>
+        )
+      }
+    },
     {
       accessorKey: 'player_1_id.full_name',
       enableResizing: false,
-      size: 200,
+      size: 150,
       header: ({ column }) => (
         <div className=''>
-          <FilterTextInput 
-            label='Nama pemain 1'
+          <FilterTextInput
+            label='Player 1 name'
             filterAccessorId="player_1_id.full_name"
             filters={filters}
             column={column}
@@ -128,11 +222,11 @@ const TeamsRegisteredPage = () => {
     {
       accessorKey: 'player_2_id.full_name',
       enableResizing: false,
-      size: 200,
+      size: 150,
       header: ({ column }) => (
         <div className=''>
-          <FilterTextInput 
-            label='Nama pemain 2'
+          <FilterTextInput
+            label='Player 2 name'
             filterAccessorId="player_2_id.full_name"
             filters={filters}
             column={column}
@@ -149,31 +243,38 @@ const TeamsRegisteredPage = () => {
       header: ({ column }) => {
         return (
           <div className=''>
-            Kategori Level
+            <small>Category</small>
             <div className=''>
-            <select
-              className='px-2 py-[9px] font-normal rounded-lg text-sm mt-2 w-full text-black'
-              value={"all"}
-              onChange={e => {
-                const newFilters = [...filters, {
-                  id: "level_category_id.label",
-                  value: e.target.value
-                }];
-                setFilters(newFilters);
-                column.setFilterValue(e.target.value)
-              }}
-            >
-              {/* See faceted column filters example for dynamic select options */}
-              <option value="all">Semua</option>
-              <option value="complicated">complicated</option>
-              <option value="relationship">relationship</option>
-              <option value="single">single</option>
-            </select>
+              <select
+                className='px-2 py-[9px] font-normal rounded-lg text-sm mt-2 w-full text-black'
+                value={(column.getFilterValue() ?? '') as string}
+                onChange={e => {
+                  const newFilters = filters.map(item => {
+                    if (item.id === "level_category_id") {
+                      return {
+                        id: "level_category_id",
+                        value: e.target.value
+                      };
+                    };
+
+                    return item;
+                  });
+                  setFilters(newFilters);
+                  column.setFilterValue(e.target.value)
+                }}
+              >
+                <option value="all">Semua</option>
+                {selectOptions.map((opt: any, idx: number) => {
+                  return (
+                    <option key={`category-option-${idx}`} value={opt.value}>{opt.label}</option>
+                  )
+                })}
+              </select>
             </div>
           </div>
         )
       },
-      cell: ({row}) => {
+      cell: ({ row }) => {
         const { original } = row;
         return (
           <div className=''>
@@ -184,28 +285,61 @@ const TeamsRegisteredPage = () => {
     },
     {
       accessorKey: 'payment_status',
-      header: 'Status Pembayaran',
       enableResizing: false,
       size: 120,
-      cell: ({row}) => {
-        const { original } = row;
+      header: ({ column }) => {
+        return (
+          <div className=''>
+            <small>Payment Status</small>
+            <div className=''>
+              <select
+                className='px-2 py-[9px] font-normal rounded-lg text-sm mt-2 w-full text-black'
+                value={(column.getFilterValue() ?? '') as string}
+                onChange={e => {
+                  const newFilters = filters.map(item => {
+                    if (item.id === "payment_status") {
+                      return {
+                        id: "payment_status",
+                        value: e.target.value
+                      };
+                    };
+
+                    return item;
+                  });
+                  setFilters(newFilters);
+                  column.setFilterValue(e.target.value)
+                }}
+              >
+                <option value="all">Semua</option>
+                {[{value: "waiting", label: "Waiting"}, {value: "confirmed", label: "Confirmed"}].map((opt: any, idx: number) => {
+                  return (
+                    <option key={`category-option-${idx}`} value={opt.value}>{opt.label}</option>
+                  )
+                })}
+              </select>
+            </div>
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        const { payment_status } = row.original;
         return (
           <div className='flex items-center gap-2 justify-center'>
-            <p className='bg-yellow-300 text-black py-1 px-3 rounded-full'>{original.payment_status}</p>
+            <p className={`text-black py-1 px-3 text-xs rounded-full ${payment_status === "confirmed" ? 'bg-green-400' : 'bg-yellow-300'}`}>{payment_status}</p>
           </div>
         )
       }
     },
     {
       accessorKey: 'review_status',
-      header: 'Status review',
       enableResizing: false,
-      size: 80,
-      cell: ({row}) => {
-        const { original } = row;
+      size: 120,
+      header: "Review status",
+      cell: ({ row }) => {
+        const { review_status } = row.original;
         return (
           <div className='flex items-center gap-2 justify-center'>
-            <p className='bg-yellow-300 text-black py-1 px-3 rounded-full'>{original.review_status}</p>
+            <p className={`text-black py-1 px-3 text-xs rounded-full ${review_status === "verified" ? 'bg-green-400' : 'bg-yellow-300'}`}>{review_status}</p>
           </div>
         )
       }
@@ -213,40 +347,101 @@ const TeamsRegisteredPage = () => {
     {
       accessorKey: '_id',
       header: '',
-      cell: ({row}) => {
+      cell: ({ row }) => {
         const { original } = row;
         return (
           <div className='flex items-center justify-center gap-2 rounded-lg'>
-            {original.review_status === "verified" && original.payment_status === "confirmed" ? 
-              <button 
-                className='p-2 bg-transparent text-main-blue'
-                onClick={() => console.log(original._id)}
+            {original.review_status === "verified" && original.payment_status === "confirmed" ?
+              <button
+                className='flex items-center gap-1 py-2 px-4 bg-main-blue text-white rounded-lg'
+                onClick={() => {
+                  setSelectedTeamData(original);
+
+                }}
               >
+                <IoInformationCircle />
                 Lihat detail
               </button>
-              : <button 
-                className='flex items-center gap-1 py-2 px-4 rounded-lg bg-main-gradient font-semibold' 
-                onClick={() => console.log(original._id)}
+              : <button
+                className='flex items-center gap-1 py-2 px-4 rounded-lg bg-main-gradient font-semibold'
+                onClick={() => {
+                  setSelectedTeamData(original);
+                  setApprovedCategory(original.level_category_id._id);
+                  setIsOpenConfirmationModal(true);
+                }}
               >
                 <IoCheckmarkCircle size={16} /> Konfirmasi
               </button>
             }
+            {/* <button
+              className='flex items-center gap-1 p-2 pe-3 bg-[#1359A5] rounded-lg text-white disabled:bg-gray-300 disabled:text-neutral-800'
+              onClick={() => console.log(original._id)}
+              disabled={original.review_status === "verified" && original.payment_status === "confirmed"}
+            >
+              <CiEdit />
+              Edit
+            </button> */}
           </div>
         )
       }
-      // meta: { filterVariant: 'select' }
     },
   ];
 
+
   return (
     <div className=''>
-      <PageTitleCard title="Data Peserta" />
+      <PageTitleCard title="Registered Teams" />
+      <div className='mt-4 bg-neutral-300 text-black rounded-xl p-4'>
+        <p className='font-bold text-xl'>Total teams per category :</p>
+        <hr className='my-4 border-black' />
+        {isLoading ?
+          <div className='py-1 flex justify-center w-full'>
+            <Loading show={isLoading} labelClassName='text-main-blue' spinnerClassName='text-main-blue' />
+          </div>
+          : <ul className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+            {totalTeamsPerCategory.map((item: any, idx) => {
+              return (
+                <li key={item.category} className=''>
+                  <p className=''>
+                    {item.category}
+                    <span className='font-bold'>: {item.total} {item.total > 1 ? "pairs" : "pair"}</span>
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+        }
+      </div>
+
+      {alert && <Alert options={alert} />}
+
       <ReusableTable
         data={tableData}
         columns={teamColumns}
       />
+
+      <ConfirmationModal
+        title="Konfirmasi Team"
+        isOpen={isOpenConfirmationModal}
+        disabledButton={isLoading}
+        onClose={() => {
+          setSelectedTeamData(null);
+          setIsOpenConfirmationModal(false);
+        }}
+        onConfirm={onConfirmHandler}
+        labelConfirm='Approve'
+      >
+        <TeamApprovalForm
+          isLoading={isLoading}
+          approvedCategory={approvedCategory}
+          onChangeApprovedCategory={(value) => setApprovedCategory(value)}
+          categorySelectOptions={selectOptions}
+          selectedTeamData={selectedTeamData}
+        />
+      </ConfirmationModal>
     </div>
   )
 }
+
 
 export default TeamsRegisteredPage

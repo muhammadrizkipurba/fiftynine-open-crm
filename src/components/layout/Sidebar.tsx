@@ -70,8 +70,8 @@ const Sidebar = ({
           {SidebarMenus.map((menu, idx) => {
             let icon;
             if(menu.label.toLowerCase() === "dashboard") icon = <IoHome />;
-            if(menu.label.toLowerCase() === "peserta") icon = <FaUserGroup />;
-            if(menu.label.toLowerCase() === "pengaturan") icon = <IoSettingsSharp />;
+            if(menu.label.toLowerCase() === "teams") icon = <FaUserGroup />;
+            if(menu.label.toLowerCase() === "settings") icon = <IoSettingsSharp />;
 
             return (
               <NavItem key={`sidebar-nav-${idx}`} icon={icon} label={menu.label} href={menu.href} active={currentPath.includes(menu.href)} />

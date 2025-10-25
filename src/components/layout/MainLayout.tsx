@@ -1,20 +1,25 @@
-import React, { ReactNode, useState } from 'react'
+import { useState } from 'react'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import Footer from './Footer';
+import { useLocation } from 'react-router';
 
 type Props = {
-  children: ReactNode
+  children: any
 };
 
 const MainLayout = ({
   children
 }: Props) => {
+  const { pathname } = useLocation();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  if (pathname === '/login') return children;
 
   return (
     <div className="flex bg-neutral-100">

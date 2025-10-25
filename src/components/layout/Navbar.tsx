@@ -1,4 +1,9 @@
 import { AiOutlineLogout } from "react-icons/ai";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { RootState } from "../../redux/store";
+import { useCallback } from "react";
+import { userLogout } from "../../redux/slices/authSlice";
 
 type Props = {
   toggleSidebar: () => void;
@@ -7,6 +12,17 @@ type Props = {
 const Navbar = ({
   toggleSidebar
 }: Props) => {
+  const navigate = useNavigate();
+	const dispatch = useDispatch();
+
+	const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+	const onLogout = useCallback(() => {
+		dispatch(userLogout());
+
+		navigate('login');
+	}, [dispatch, navigate]);
+
   return (
     <header className="flex items-center justify-between px-4 py-5 bg-main-blue border-b shadow-sm lg:px-6">
       <div className="flex items-center">
@@ -28,12 +44,19 @@ const Navbar = ({
         {/* Profile Dropdown (Placeholder) */}
         <div className='flex items-center gap-2'>
           <div className='text-end leading-1 mb-0.5 text-white flex flex-col justify-center'>
-            <p className='mb-0 font-bold cursor-default'>Mhd Rizki Purba</p>
-            <small className='leading-3 cursor-default'>Admin</small>
+            <p className='mb-0 font-bold cursor-default'>
+              {isAuthenticated && user?.name} - <span className="capitalize">{isAuthenticated && user?.role}</span>
+            </p>
+            <small className='leading-3 cursor-default'>
+              {isAuthenticated && user?.email}
+            </small>
           </div>
         </div>
 
-        <button className="bg-red-600 p-4 rounded-xl cursor-pointer transition-all ease-in-out duration-300 hover:scale-105">
+        <button 
+          onClick={onLogout}
+          className="bg-red-600 p-4 rounded-xl cursor-pointer transition-all ease-in-out duration-300 hover:scale-105"
+        >
           <AiOutlineLogout color="white" className="cursor-pointer" />
         </button>
       </div>
