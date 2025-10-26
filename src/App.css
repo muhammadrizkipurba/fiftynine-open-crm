@@ -61,7 +61,7 @@
 
 table {
   border-collapse: collapse;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 /* Zebra striping */
@@ -100,28 +100,27 @@ and also iPads specifically.
   }
 
   /* Force table to not be like tables anymore */
-  table,
+  /* table,
   thead,
   tbody,
   th,
   td,
   tr {
     display: block;
-  }
+  } */
 
   /* Hide table headers (but not display: none;, for accessibility) */
-  thead tr {
+  /* thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
-  }
+  } */
 
-  tr {
+  /* tr {
     border: 1px solid #ccc;
   }
 
   td {
-    /* Behave  like a "row" */
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
@@ -129,19 +128,16 @@ and also iPads specifically.
   }
 
   td:before {
-    /* Now like a table header */
     position: absolute;
-    /* Top/left values mimic padding */
     top: 6px;
     left: 6px;
     width: 45%;
     padding-right: 10px;
     white-space: nowrap;
-    /* Label the data */
     content: attr(data-column);
 
     color: #000;
     font-weight: bold;
-  }
+  } */
 
 }

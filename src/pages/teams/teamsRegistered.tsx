@@ -428,7 +428,7 @@ const TeamsRegisteredPage = () => {
 
 
   return (
-    <div className=''>
+    <div className='overflow-x-hidden'>
       <PageTitleCard title="Registered Teams" />
       <div className='mt-4 bg-neutral-300 text-black rounded-xl p-4'>
         <p className='font-bold text-xl'>Total teams per category :</p>
@@ -454,57 +454,59 @@ const TeamsRegisteredPage = () => {
 
       {alert && <Alert options={alert} />}
 
-      <ReusableTable
-        data={tableData}
-        columns={teamColumns}
-      />
+      <div className='overflow-auto rounded-xl'>
+        <ReusableTable
+          data={tableData}
+          columns={teamColumns}
+        />
 
-      {/* APPROVE TEAM MODAL */}
-      <ConfirmationModal
-        title="Approve Team"
-        isOpen={isOpenConfirmationModal}
-        disabledButton={isLoading}
-        onClose={() => {
-          setSelectedTeamData(null);
-          setIsOpenConfirmationModal(false);
-        }}
-        showFooter={user && user.role === "admin" ? true : false}
-        labelConfirm='Approve'
-        onConfirm={onConfirmHandler}
-      >
-        {user && user.role === "admin" ? 
-          <TeamApprovalForm
-            isLoading={isLoading}
-            approvedCategory={approvedCategory}
-            onChangeApprovedCategory={(value) => setApprovedCategory(value)}
-            categorySelectOptions={selectOptions}
-            selectedTeamData={selectedTeamData}
-          />
-        : <>
+        {/* APPROVE TEAM MODAL */}
+        <ConfirmationModal
+          title="Approve Team"
+          isOpen={isOpenConfirmationModal}
+          disabledButton={isLoading}
+          onClose={() => {
+            setSelectedTeamData(null);
+            setIsOpenConfirmationModal(false);
+          }}
+          showFooter={user && user.role === "admin" ? true : false}
+          labelConfirm='Approve'
+          onConfirm={onConfirmHandler}
+        >
+          {user && user.role === "admin" ? 
+            <TeamApprovalForm
+              isLoading={isLoading}
+              approvedCategory={approvedCategory}
+              onChangeApprovedCategory={(value) => setApprovedCategory(value)}
+              categorySelectOptions={selectOptions}
+              selectedTeamData={selectedTeamData}
+            />
+          : <>
+            <TeamInfoDetails selectedTeamData={selectedTeamData} />
+            <hr className='my-4' />
+            <div className='mt-4 flex flex-col items-center justify-center'>
+              <p>You have <strong>view-only</strong> access.</p>
+              <p>Please contact your admin to approve this team.</p>
+            </div>
+          </>
+          }
+        </ConfirmationModal>
+
+        {/* TEAM INFO DETAILS MODAL */}
+        <ConfirmationModal
+          title="Team information"
+          isOpen={isOpenDetailsModal}
+          disabledButton={isLoading}
+          onClose={() => {
+            setSelectedTeamData(null);
+            setIsOpenDetailsModal(false);
+          }}
+          showFooter={false}
+          onConfirm={() => {}}
+        >
           <TeamInfoDetails selectedTeamData={selectedTeamData} />
-          <hr className='my-4' />
-          <div className='mt-4 flex flex-col items-center justify-center'>
-            <p>You have <strong>view-only</strong> access.</p>
-            <p>Please contact your admin to approve this team.</p>
-          </div>
-        </>
-        }
-      </ConfirmationModal>
-
-      {/* TEAM INFO DETAILS MODAL */}
-      <ConfirmationModal
-        title="Team information"
-        isOpen={isOpenDetailsModal}
-        disabledButton={isLoading}
-        onClose={() => {
-          setSelectedTeamData(null);
-          setIsOpenDetailsModal(false);
-        }}
-        showFooter={false}
-        onConfirm={() => {}}
-      >
-        <TeamInfoDetails selectedTeamData={selectedTeamData} />
-      </ConfirmationModal>
+        </ConfirmationModal>
+      </div>
     </div>
   )
 }

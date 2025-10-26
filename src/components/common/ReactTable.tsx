@@ -38,7 +38,7 @@ function ReusableTable<TData extends object>({ data, columns, initialColumnFilte
   });
 
   return (
-    <table className='w-full shadow-sm my-5 rounded-xl'>
+    <table className='w-full shadow-sm my-5 rounded-xl overflow-hidden'>
       <thead className=''>
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
