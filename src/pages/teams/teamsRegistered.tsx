@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { IoCheckmarkCircle, IoInformationCircle } from "react-icons/io5";
+import { IoCheckmarkCircle, IoInformationCircle, IoLogoInstagram } from "react-icons/io5";
 import { io } from 'socket.io-client';
 import { fetchApproveRegisteredTeam, fetchApproveRegisteredTeamPayload, fetchCategoryOptions, fetchCategoryOptionsPayload, fetchRegisteredTeamList, fetchTeamListPayload } from './teamRegisteredServices';
 import PageTitleCard from '../../components/common/PageTitleCard';
@@ -12,6 +12,9 @@ import Alert, { AlertPropsType } from '../../components/ui/alert';
 import Loading from "../../components/ui/loading";
 import TeamApprovalForm from './teamApprovalForm';
 import { SelectOption } from '../../components/form/SelectInput';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import TeamInfoDetails from './teamInfoDetails';
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,6 +67,8 @@ const FilterTextInput = ({
 };
 
 const TeamsRegisteredPage = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<AlertPropsType | null>(null);
 
@@ -217,7 +222,27 @@ const TeamsRegisteredPage = () => {
             setFilters={setFilters}
           />
         </div>
-      )
+      ),
+      cell: ({ row }) => {
+        const { player_1_id, player_1_hometown, player_1_instagram } = row.original;
+        const { whatsapp } = player_1_id;
+        const phone_number = whatsapp.charAt(0) === "0" ? "+62"+whatsapp.slice(1) : whatsapp.substring(0, 3) === '+62' ? "+62"+whatsapp.slice(3) : "+62"+whatsapp;
+        return (
+          <div>
+            <p className='capitalize font-bold'>{player_1_id.full_name}</p>
+            <small className='text-[12px] text-gray-400'>{phone_number}</small>
+            { player_1_hometown && 
+              <small className='capitalize text-[12px] text-gray-400'> - {player_1_hometown}</small>
+            }
+            { player_1_instagram && 
+              <p className='text-[12px] text-gray-400 leading-3 flex items-center gap-1 lowercase'>
+                <IoLogoInstagram size={12} /> 
+                <small className='text-[12px] text-gray-400'>{player_1_instagram}</small>
+              </p>
+            }
+          </div>
+        )
+      }
     },
     {
       accessorKey: 'player_2_id.full_name',
@@ -233,7 +258,27 @@ const TeamsRegisteredPage = () => {
             setFilters={setFilters}
           />
         </div>
-      )
+      ),
+      cell: ({ row }) => {
+        const { player_2_id, player_2_hometown, player_2_instagram } = row.original;
+        const { whatsapp } = player_2_id;
+        const phone_number = whatsapp.charAt(0) === "0" ? "+62"+whatsapp.slice(1) : whatsapp.substring(0, 3) === '+62' ? "+62"+whatsapp.slice(3) : "+62"+whatsapp;
+        return (
+          <div>
+            <p className='capitalize font-bold'>{player_2_id.full_name}</p>
+            <small className='text-[12px] text-gray-400'>{phone_number}</small>
+            { player_2_hometown && player_2_hometown !== "-" && 
+              <small className='capitalize text-[12px] text-gray-400'> - {player_2_hometown}</small>
+            }
+            { player_2_instagram && player_2_instagram !== "-" &&
+              <p className='text-[12px] text-gray-400 leading-3 flex items-center gap-1 lowercase'>
+                <IoLogoInstagram size={12} /> 
+                <small className='text-[12px] text-gray-400'>{player_2_instagram}</small>
+              </p>
+            }
+          </div>
+        )
+      }
     },
     {
       accessorKey: 'level_category_id.label',
@@ -351,12 +396,13 @@ const TeamsRegisteredPage = () => {
         const { original } = row;
         return (
           <div className='flex items-center justify-center gap-2 rounded-lg'>
-            {original.review_status === "verified" && original.payment_status === "confirmed" ?
+            {(original.review_status === "verified" && original.payment_status === "confirmed") ?
               <button
                 className='flex items-center gap-1 py-2 px-4 bg-main-blue text-white rounded-lg'
                 onClick={() => {
                   setSelectedTeamData(original);
-
+                  setIsOpenConfirmationModal(false);
+                  setIsOpenDetailsModal(true);
                 }}
               >
                 <IoInformationCircle />
@@ -367,20 +413,13 @@ const TeamsRegisteredPage = () => {
                 onClick={() => {
                   setSelectedTeamData(original);
                   setApprovedCategory(original.level_category_id._id);
+                  setIsOpenDetailsModal(false);
                   setIsOpenConfirmationModal(true);
                 }}
               >
-                <IoCheckmarkCircle size={16} /> Konfirmasi
+                <IoCheckmarkCircle size={16} /> Approve
               </button>
             }
-            {/* <button
-              className='flex items-center gap-1 p-2 pe-3 bg-[#1359A5] rounded-lg text-white disabled:bg-gray-300 disabled:text-neutral-800'
-              onClick={() => console.log(original._id)}
-              disabled={original.review_status === "verified" && original.payment_status === "confirmed"}
-            >
-              <CiEdit />
-              Edit
-            </button> */}
           </div>
         )
       }
@@ -420,24 +459,51 @@ const TeamsRegisteredPage = () => {
         columns={teamColumns}
       />
 
+      {/* APPROVE TEAM MODAL */}
       <ConfirmationModal
-        title="Konfirmasi Team"
+        title="Approve Team"
         isOpen={isOpenConfirmationModal}
         disabledButton={isLoading}
         onClose={() => {
           setSelectedTeamData(null);
           setIsOpenConfirmationModal(false);
         }}
-        onConfirm={onConfirmHandler}
+        showFooter={user && user.role === "admin" ? true : false}
         labelConfirm='Approve'
+        onConfirm={onConfirmHandler}
       >
-        <TeamApprovalForm
-          isLoading={isLoading}
-          approvedCategory={approvedCategory}
-          onChangeApprovedCategory={(value) => setApprovedCategory(value)}
-          categorySelectOptions={selectOptions}
-          selectedTeamData={selectedTeamData}
-        />
+        {user && user.role === "admin" ? 
+          <TeamApprovalForm
+            isLoading={isLoading}
+            approvedCategory={approvedCategory}
+            onChangeApprovedCategory={(value) => setApprovedCategory(value)}
+            categorySelectOptions={selectOptions}
+            selectedTeamData={selectedTeamData}
+          />
+        : <>
+          <TeamInfoDetails selectedTeamData={selectedTeamData} />
+          <hr className='my-4' />
+          <div className='mt-4 flex flex-col items-center justify-center'>
+            <p>You have <strong>view-only</strong> access.</p>
+            <p>Please contact your admin to approve this team.</p>
+          </div>
+        </>
+        }
+      </ConfirmationModal>
+
+      {/* TEAM INFO DETAILS MODAL */}
+      <ConfirmationModal
+        title="Team information"
+        isOpen={isOpenDetailsModal}
+        disabledButton={isLoading}
+        onClose={() => {
+          setSelectedTeamData(null);
+          setIsOpenDetailsModal(false);
+        }}
+        showFooter={false}
+        onConfirm={() => {}}
+      >
+        <TeamInfoDetails selectedTeamData={selectedTeamData} />
       </ConfirmationModal>
     </div>
   )

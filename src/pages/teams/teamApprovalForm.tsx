@@ -1,8 +1,6 @@
-import React from 'react'
-import { IoInformationCircle } from 'react-icons/io5'
-import { PhotoProvider, PhotoView } from 'react-photo-view'
 import { SingleTeamData } from './teamTypes'
 import SelectInput, { SelectOption } from '../../components/form/SelectInput';
+import TeamInfoDetails from './teamInfoDetails';
 
 type Props = {
   isLoading: boolean;
@@ -22,7 +20,7 @@ const TeamApprovalForm = ({
   return (
     <>
       <div className='mt-3 mb-5'>
-        <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4'>
+        {/* <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4'>
           <div>
             <p className='leading-5 text-sm'>
               Player 1
@@ -117,7 +115,8 @@ const TeamApprovalForm = ({
               </li>
             </ul>
           </div>
-        </div>
+        </div> */}
+        <TeamInfoDetails selectedTeamData={selectedTeamData} />
         <hr className='my-4' />
         <div className=''>
           <div className='mb-1.5'>
