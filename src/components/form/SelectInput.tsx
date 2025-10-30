@@ -35,7 +35,7 @@ const SelectInput = ({
 }: Props) => {
   return (
     <>
-      <div className={`relative w-full flex-1 border ${error ? "border-red-400" : "border-main-blue/50"} rounded-xl text-black ${disabled ? 'bg-neutral-900/50 border-transparent' : 'text-black bg-transparent'}`}>
+      <div className={`relative w-full flex-1 border ${error ? "border-red-400" : "border-main-blue/50"} rounded-xl text-black ${disabled ? 'bg-neutral-300 border-transparent' : 'text-black bg-transparent'}`}>
         <div className='flex items-center gap-3'>
           {name === "jerseySize" ? <IoIosShirt size={20} className='absolute ml-3' />
             : name === "level_category" ? <FaMedal size={18} className='absolute ml-3 mt-0.5' />

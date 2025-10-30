@@ -29,7 +29,7 @@ const ConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl mx-4">
         <div className='relative'>
           <h2 className="text-xl font-semibold mb-4">{title}</h2>
           <button 
@@ -55,7 +55,7 @@ const ConfirmationModal = ({
               <button
                 disabled={disabledButton}
                 onClick={onConfirm}
-                className="px-4 py-2 bg-main-blue text-white rounded-xl hover:bg-blue-600 transition-all ease-in-out duration-300 font-semibold"
+                className="px-4 py-2 bg-blue-900 text-white rounded-xl hover:bg-blue-600 transition-all ease-in-out duration-300 font-semibold disabled:bg-gray-400 cursor-pointer disabled:cursor-not-allowed"
               >
                 {labelConfirm || "Confirm"}
               </button>

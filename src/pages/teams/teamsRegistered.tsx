@@ -454,7 +454,7 @@ const TeamsRegisteredPage = () => {
 
       {alert && <Alert options={alert} />}
 
-      <div className='overflow-auto rounded-xl'>
+      <div className='overflow-auto'>
         <ReusableTable
           data={tableData}
           columns={teamColumns}

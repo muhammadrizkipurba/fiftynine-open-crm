@@ -7,6 +7,8 @@ import TeamsRegisteredPage from './pages/teams/teamsRegistered';
 import AuthRoute from './AuthRoute';
 import LoginPage from './pages/login/LoginPage';
 import ProtectedRoute from './ProtectedRoute';
+import GroupsInfoPage from './pages/groups';
+import MatchesPage from './pages/matches';
 
 function App() {
   return (
@@ -27,6 +29,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <TeamsRegisteredPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <GroupsInfoPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/matches"
+            element={
+              <ProtectedRoute>
+                <MatchesPage />
               </ProtectedRoute>
             }
           />

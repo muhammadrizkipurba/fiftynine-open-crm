@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { IoHome, IoSettingsSharp } from "react-icons/io5";
-import { FaUserGroup } from "react-icons/fa6";
+import { FaTable, FaUserGroup } from "react-icons/fa6";
+import { TbVs } from "react-icons/tb";
 import { NavLink, useLocation } from 'react-router';
 import { SidebarMenus } from '../../constants';
 
@@ -71,6 +72,8 @@ const Sidebar = ({
             let icon;
             if(menu.label.toLowerCase() === "dashboard") icon = <IoHome />;
             if(menu.label.toLowerCase() === "teams") icon = <FaUserGroup />;
+            if(menu.label.toLowerCase() === "groups") icon = <FaTable />;
+            if(menu.label.toLowerCase() === "matches") icon = <TbVs />;
             if(menu.label.toLowerCase() === "settings") icon = <IoSettingsSharp />;
 
             return (
