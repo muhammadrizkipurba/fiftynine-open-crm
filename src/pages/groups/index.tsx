@@ -77,7 +77,7 @@ const GroupTable = ({
                   </p>
                 </td>
                 <td className="p-4 border-b border-blue-gray-50">
-                  <p className='capitalize p-2 text-sm text-wrap max-w-[500px]'>
+                  <p className='capitalize p-2 text-sm text-wrap max-w-[250px]'>
                     <strong>{team.player_1_id.full_name}</strong> & <strong>{team.player_2_id.full_name}</strong>
                   </p>
                 </td>
